@@ -178,7 +178,7 @@
             width: 220px;
             height: 220px;
             border-radius: 50%;
-            background: #e4e7ec;
+            background-color: #e4e7ec;
             box-shadow: 0 3px 10px rgba(16, 24, 40, 0.14);
         }
 
@@ -236,7 +236,7 @@
         .cor {
             width: 14px;
             height: 14px;
-            flex: 0 0 14px;
+            min-width: 14px;
             border-radius: 4px;
         }
 
@@ -317,16 +317,14 @@
                 <label for="ano">Ano:</label>
 
                 <select id="ano" disabled>
-                    <option>Carregando...</option>
+                    <option value="">Carregando...</option>
                 </select>
             </div>
         </header>
 
         <div
             id="mensagem"
-            class="mensagem mensagem-carregando"
-            role="status"
-            aria-live="polite">
+            class="mensagem mensagem-carregando">
             Carregando os indicadores...
         </div>
 
@@ -389,4 +387,367 @@
 
                 <div class="rodape-painel">
                     Selecione outro ano para atualizar os dados.
-     
+                </div>
+            </article>
+
+        </section>
+
+    </main>
+
+    <script>
+        var dados = {};
+
+        var seletorAno =
+            document.getElementById("ano");
+
+        var mensagem =
+            document.getElementById("mensagem");
+
+        var atendimentos =
+            document.getElementById("atendimentos");
+
+        var visitas =
+            document.getElementById("visitas");
+
+        var naoConformidades =
+            document.getElementById("naoConformidades");
+
+        var categoriaRecorrente =
+            document.getElementById("categoriaRecorrente");
+
+        var totalGrafico =
+            document.getElementById("totalGrafico");
+
+        var graficoRosca =
+            document.getElementById("graficoRosca");
+
+        var legenda =
+            document.getElementById("legenda");
+
+        var corpoTabela =
+            document.getElementById("corpoTabela");
+
+        var cores = [
+            "#21409a",
+            "#98cc32",
+            "#f59e0b",
+            "#7c3aed",
+            "#0891b2",
+            "#dc2626",
+            "#16a34a",
+            "#db2777"
+        ];
+
+        function mostrarErro(texto) {
+            mensagem.textContent = texto;
+            mensagem.className =
+                "mensagem mensagem-erro";
+            mensagem.style.display = "block";
+        }
+
+        function ocultarMensagem() {
+            mensagem.style.display = "none";
+        }
+
+        function obterCategoriaRecorrente(ocorrencias) {
+            if (!ocorrencias || ocorrencias.length === 0) {
+                return "Sem registros";
+            }
+
+            var maiorQuantidade = 0;
+            var categorias = [];
+            var i;
+
+            for (i = 0; i < ocorrencias.length; i++) {
+                var quantidade =
+                    Number(ocorrencias[i].quantidade) || 0;
+
+                if (quantidade > maiorQuantidade) {
+                    maiorQuantidade = quantidade;
+                }
+            }
+
+            if (maiorQuantidade === 0) {
+                return "Sem registros";
+            }
+
+            for (i = 0; i < ocorrencias.length; i++) {
+                var quantidadeAtual =
+                    Number(ocorrencias[i].quantidade) || 0;
+
+                if (quantidadeAtual === maiorQuantidade) {
+                    categorias.push(
+                        ocorrencias[i].categoria
+                    );
+                }
+            }
+
+            if (categorias.length > 1) {
+                return "Empate: " + categorias.join(" e ");
+            }
+
+            return categorias[0];
+        }
+
+        function preencherAnos() {
+            var anos = Object.keys(dados);
+
+            anos.sort(function(a, b) {
+                return Number(b) - Number(a);
+            });
+
+            seletorAno.innerHTML = "";
+
+            for (var i = 0; i < anos.length; i++) {
+                var opcao =
+                    document.createElement("option");
+
+                opcao.value = anos[i];
+                opcao.textContent = anos[i];
+
+                seletorAno.appendChild(opcao);
+            }
+
+            if (anos.length > 0) {
+                seletorAno.value = anos[0];
+                seletorAno.disabled = false;
+            }
+        }
+
+        function atualizarDashboard() {
+            var anoSelecionado = seletorAno.value;
+            var dadosAno = dados[anoSelecionado];
+
+            if (!dadosAno) {
+                mostrarErro(
+                    "Não foram encontrados dados para o ano selecionado."
+                );
+                return;
+            }
+
+            ocultarMensagem();
+
+            atendimentos.textContent =
+                Number(dadosAno.atendimentos) || 0;
+
+            visitas.textContent =
+                Number(dadosAno.visitas) || 0;
+
+            naoConformidades.textContent =
+                Number(dadosAno.naoConformidades) || 0;
+
+            var ocorrencias = [];
+
+            if (Array.isArray(dadosAno.ocorrencias)) {
+                ocorrencias = dadosAno.ocorrencias;
+            }
+
+            categoriaRecorrente.textContent =
+                obterCategoriaRecorrente(ocorrencias);
+
+            var total = 0;
+            var i;
+
+            for (i = 0; i < ocorrencias.length; i++) {
+                total +=
+                    Number(ocorrencias[i].quantidade) || 0;
+            }
+
+            totalGrafico.textContent = total;
+
+            legenda.innerHTML = "";
+            corpoTabela.innerHTML = "";
+
+            var inicioGraus = 0;
+            var partesGrafico = [];
+
+            for (i = 0; i < ocorrencias.length; i++) {
+                var item = ocorrencias[i];
+
+                var nomeCategoria =
+                    item.categoria || "Sem categoria";
+
+                var quantidade =
+                    Number(item.quantidade) || 0;
+
+                var porcentagem = 0;
+
+                if (total > 0) {
+                    porcentagem = quantidade / total;
+                }
+
+                var tamanhoGraus =
+                    porcentagem * 360;
+
+                var fimGraus =
+                    inicioGraus + tamanhoGraus;
+
+                var cor =
+                    cores[i % cores.length];
+
+                partesGrafico.push(
+                    cor +
+                    " " +
+                    inicioGraus +
+                    "deg " +
+                    fimGraus +
+                    "deg"
+                );
+
+                inicioGraus = fimGraus;
+
+                var linha =
+                    document.createElement("tr");
+
+                var colunaCategoria =
+                    document.createElement("td");
+
+                var colunaQuantidade =
+                    document.createElement("td");
+
+                colunaCategoria.textContent =
+                    nomeCategoria;
+
+                colunaQuantidade.textContent =
+                    quantidade;
+
+                linha.appendChild(colunaCategoria);
+                linha.appendChild(colunaQuantidade);
+
+                corpoTabela.appendChild(linha);
+
+                var itemLegenda =
+                    document.createElement("div");
+
+                itemLegenda.className =
+                    "item-legenda";
+
+                var legendaInfo =
+                    document.createElement("div");
+
+                legendaInfo.className =
+                    "legenda-info";
+
+                var marcador =
+                    document.createElement("span");
+
+                marcador.className = "cor";
+                marcador.style.backgroundColor = cor;
+
+                var textoLegenda =
+                    document.createElement("span");
+
+                textoLegenda.textContent =
+                    nomeCategoria;
+
+                var valorLegenda =
+                    document.createElement("strong");
+
+                valorLegenda.textContent =
+                    quantidade;
+
+                legendaInfo.appendChild(marcador);
+                legendaInfo.appendChild(textoLegenda);
+
+                itemLegenda.appendChild(legendaInfo);
+                itemLegenda.appendChild(valorLegenda);
+
+                legenda.appendChild(itemLegenda);
+            }
+
+            if (
+                total > 0 &&
+                partesGrafico.length > 0
+            ) {
+                graficoRosca.style.background =
+                    "conic-gradient(" +
+                    partesGrafico.join(",") +
+                    ")";
+            } else {
+                graficoRosca.style.background =
+                    "#e4e7ec";
+
+                corpoTabela.innerHTML =
+                    "<tr>" +
+                    "<td>Sem ocorrências registradas</td>" +
+                    "<td>0</td>" +
+                    "</tr>";
+
+                legenda.innerHTML =
+                    "<div class=\"item-legenda\">" +
+                    "<span>Sem ocorrências registradas</span>" +
+                    "<strong>0</strong>" +
+                    "</div>";
+            }
+        }
+
+        function carregarDados() {
+            mensagem.textContent =
+                "Carregando os indicadores...";
+
+            mensagem.className =
+                "mensagem mensagem-carregando";
+
+            mensagem.style.display = "block";
+            seletorAno.disabled = true;
+
+            var endereco =
+                "https://jackpikapreta.github.io/" +
+                "dashboard-sege/dados.json?v=" +
+                new Date().getTime();
+
+            fetch(endereco, {
+                method: "GET",
+                cache: "no-store"
+            })
+            .then(function(resposta) {
+                if (!resposta.ok) {
+                    throw new Error(
+                        "Erro HTTP: " + resposta.status
+                    );
+                }
+
+                return resposta.json();
+            })
+            .then(function(dadosRecebidos) {
+                if (
+                    !dadosRecebidos ||
+                    typeof dadosRecebidos !== "object"
+                ) {
+                    throw new Error(
+                        "Conteúdo JSON inválido."
+                    );
+                }
+
+                dados = dadosRecebidos;
+
+                preencherAnos();
+                atualizarDashboard();
+            })
+            .catch(function(erro) {
+                console.error(
+                    "Erro ao carregar dados:",
+                    erro
+                );
+
+                mostrarErro(
+                    "Não foi possível carregar os indicadores. " +
+                    "Erro identificado: " +
+                    erro.message
+                );
+
+                categoriaRecorrente.textContent =
+                    "Dados indisponíveis";
+            });
+        }
+
+        seletorAno.addEventListener(
+            "change",
+            atualizarDashboard
+        );
+
+        carregarDados();
+    </script>
+
+</body>
+</html>
