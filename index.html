@@ -66,6 +66,33 @@
             cursor: pointer;
         }
 
+        .filtro select:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .mensagem {
+            display: none;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        .mensagem-carregando {
+            display: block;
+            color: #34451f;
+            background-color: #edf7d7;
+            border: 1px solid #98cc32;
+        }
+
+        .mensagem-erro {
+            display: block;
+            color: #842029;
+            background-color: #f8d7da;
+            border: 1px solid #f1aeb5;
+        }
+
         .cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -151,10 +178,7 @@
             width: 220px;
             height: 220px;
             border-radius: 50%;
-            background: conic-gradient(
-                #21409a 0deg 240deg,
-                #98cc32 240deg 360deg
-            );
+            background: #e4e7ec;
             box-shadow: 0 3px 10px rgba(16, 24, 40, 0.14);
         }
 
@@ -214,14 +238,6 @@
             height: 14px;
             flex: 0 0 14px;
             border-radius: 4px;
-        }
-
-        .cor-azul {
-            background-color: #21409a;
-        }
-
-        .cor-verde {
-            background-color: #98cc32;
         }
 
         table {
@@ -300,12 +316,19 @@
             <div class="filtro">
                 <label for="ano">Ano:</label>
 
-                <select id="ano">
-                    <option value="2025">2025</option>
-                    <option value="2026" selected>2026</option>
+                <select id="ano" disabled>
+                    <option>Carregando...</option>
                 </select>
             </div>
         </header>
+
+        <div
+            id="mensagem"
+            class="mensagem mensagem-carregando"
+            role="status"
+            aria-live="polite">
+            Carregando os indicadores...
+        </div>
 
         <section class="cards">
 
@@ -328,7 +351,7 @@
 
         <section class="categoria-destaque">
             <p>Categoria de não conformidade mais recorrente</p>
-            <h2 id="categoriaRecorrente">Sem registros</h2>
+            <h2 id="categoriaRecorrente">Carregando...</h2>
         </section>
 
         <section class="conteudo-inferior">
@@ -366,250 +389,4 @@
 
                 <div class="rodape-painel">
                     Selecione outro ano para atualizar os dados.
-                </div>
-            </article>
-
-        </section>
-
-    </main>
-
-    <script>
-        const dados = {
-            "2025": {
-                atendimentos: 117,
-                visitas: 0,
-                naoConformidades: 3,
-                ocorrencias: [
-                    {
-                        categoria: "Cronograma incompatível",
-                        quantidade: 2
-                    },
-                    {
-                        categoria: "Início sem documentação",
-                        quantidade: 1
-                    }
-                ]
-            },
-
-            "2026": {
-                atendimentos: 217,
-                visitas: 12,
-                naoConformidades: 2,
-                ocorrencias: [
-                    {
-                        categoria: "Cronograma incompatível",
-                        quantidade: 1
-                    },
-                    {
-                        categoria: "Início sem documentação",
-                        quantidade: 1
-                    }
-                ]
-            }
-        };
-
-        const seletorAno = document.getElementById("ano");
-        const elementoAtendimentos = document.getElementById("atendimentos");
-        const elementoVisitas = document.getElementById("visitas");
-        const elementoNaoConformidades =
-            document.getElementById("naoConformidades");
-        const elementoCategoriaRecorrente =
-            document.getElementById("categoriaRecorrente");
-        const elementoTotalGrafico =
-            document.getElementById("totalGrafico");
-        const elementoGrafico =
-            document.getElementById("graficoRosca");
-        const elementoLegenda =
-            document.getElementById("legenda");
-        const elementoTabela =
-            document.getElementById("corpoTabela");
-
-        function encontrarCategoriaRecorrente(ocorrencias) {
-            if (!ocorrencias || ocorrencias.length === 0) {
-                return "Sem registros";
-            }
-
-            let maiorQuantidade = Math.max(
-                ...ocorrencias.map(function(item) {
-                    return item.quantidade;
-                })
-            );
-
-            let categoriasEmpatadas = ocorrencias
-                .filter(function(item) {
-                    return item.quantidade === maiorQuantidade;
-                })
-                .map(function(item) {
-                    return item.categoria;
-                });
-
-            if (categoriasEmpatadas.length > 1) {
-                return "Empate: " + categoriasEmpatadas.join(" e ");
-            }
-
-            return categoriasEmpatadas[0];
-        }
-
-        function atualizarDashboard() {
-            const anoSelecionado = seletorAno.value;
-            const dadosDoAno = dados[anoSelecionado];
-
-            if (!dadosDoAno) {
-                return;
-            }
-
-            elementoAtendimentos.textContent =
-                dadosDoAno.atendimentos;
-
-            elementoVisitas.textContent =
-                dadosDoAno.visitas;
-
-            elementoNaoConformidades.textContent =
-                dadosDoAno.naoConformidades;
-
-            elementoCategoriaRecorrente.textContent =
-                encontrarCategoriaRecorrente(
-                    dadosDoAno.ocorrencias
-                );
-
-            const totalOcorrencias =
-                dadosDoAno.ocorrencias.reduce(
-                    function(total, item) {
-                        return total + item.quantidade;
-                    },
-                    0
-                );
-
-            elementoTotalGrafico.textContent =
-                totalOcorrencias;
-
-            elementoTabela.innerHTML = "";
-            elementoLegenda.innerHTML = "";
-
-            const cores = [
-                "#21409a",
-                "#98cc32"
-            ];
-
-            let inicioAtual = 0;
-            let partesDoGrafico = [];
-
-            dadosDoAno.ocorrencias.forEach(
-                function(item, indice) {
-                    const porcentagem =
-                        totalOcorrencias > 0
-                            ? item.quantidade / totalOcorrencias
-                            : 0;
-
-                    const tamanhoEmGraus =
-                        porcentagem * 360;
-
-                    const fimAtual =
-                        inicioAtual + tamanhoEmGraus;
-
-                    const cor =
-                        cores[indice % cores.length];
-
-                    partesDoGrafico.push(
-                        cor +
-                        " " +
-                        inicioAtual +
-                        "deg " +
-                        fimAtual +
-                        "deg"
-                    );
-
-                    inicioAtual = fimAtual;
-
-                    const linha = document.createElement("tr");
-
-                    const celulaCategoria =
-                        document.createElement("td");
-
-                    const celulaQuantidade =
-                        document.createElement("td");
-
-                    celulaCategoria.textContent =
-                        item.categoria;
-
-                    celulaQuantidade.textContent =
-                        item.quantidade;
-
-                    linha.appendChild(celulaCategoria);
-                    linha.appendChild(celulaQuantidade);
-
-                    elementoTabela.appendChild(linha);
-
-                    const itemLegenda =
-                        document.createElement("div");
-
-                    itemLegenda.className =
-                        "item-legenda";
-
-                    const informacaoLegenda =
-                        document.createElement("div");
-
-                    informacaoLegenda.className =
-                        "legenda-info";
-
-                    const quadradoCor =
-                        document.createElement("span");
-
-                    quadradoCor.className = "cor";
-                    quadradoCor.style.backgroundColor = cor;
-
-                    const nomeCategoria =
-                        document.createElement("span");
-
-                    nomeCategoria.textContent =
-                        item.categoria;
-
-                    const quantidadeLegenda =
-                        document.createElement("strong");
-
-                    quantidadeLegenda.textContent =
-                        item.quantidade;
-
-                    informacaoLegenda.appendChild(
-                        quadradoCor
-                    );
-
-                    informacaoLegenda.appendChild(
-                        nomeCategoria
-                    );
-
-                    itemLegenda.appendChild(
-                        informacaoLegenda
-                    );
-
-                    itemLegenda.appendChild(
-                        quantidadeLegenda
-                    );
-
-                    elementoLegenda.appendChild(
-                        itemLegenda
-                    );
-                }
-            );
-
-            if (partesDoGrafico.length > 0) {
-                elementoGrafico.style.background =
-                    "conic-gradient(" +
-                    partesDoGrafico.join(", ") +
-                    ")";
-            } else {
-                elementoGrafico.style.background =
-                    "#e4e7ec";
-            }
-        }
-
-        seletorAno.addEventListener(
-            "change",
-            atualizarDashboard
-        );
-
-        atualizarDashboard();
-    </script>
-
-</body>
-</html>
+     
