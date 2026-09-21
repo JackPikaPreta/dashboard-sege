@@ -1,32 +1,28 @@
 {
   "2025": {
     "atendimentos": 117,
-    "visitas": 0,
     "naoConformidades": 3,
     "ocorrencias": [
       {
-        "categoria": "Cronograma incompatível",
+        "categoria": "Início de atividades sem documentação autorizativa",
         "quantidade": 2
       },
       {
-        "categoria": "Início sem documentação",
+        "categoria": "Cronograma incompatível",
         "quantidade": 1
       }
-    ]
+    ],
+    "visitas": 0
   },
   "2026": {
     "atendimentos": 217,
-    "visitas": 12,
     "naoConformidades": 2,
     "ocorrencias": [
       {
-        "categoria": "Cronograma incompatível",
-        "quantidade": 1
-      },
-      {
-        "categoria": "Início sem documentação",
-        "quantidade": 1
+        "categoria": "Início de atividades sem documentação autorizativa",
+        "quantidade": 2
       }
-    ]
+    ],
+    "visitas": 12
   }
 }
