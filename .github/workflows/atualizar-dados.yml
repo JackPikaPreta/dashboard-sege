@@ -1,0 +1,54 @@
+name: Atualizar dados do Dashboard SEGE
+
+on:
+  repository_dispatch:
+    types:
+      - atualizar-dados-sege
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar-dados:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Gerar o arquivo dados.json
+        env:
+          DADOS_SEGE: ${{ toJson(github.event.client_payload) }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          conteudo = os.environ["DADOS_SEGE"]
+          dados = json.loads(conteudo)
+
+          with open("dados.json", "w", encoding="utf-8") as arquivo:
+              json.dump(
+                  dados,
+                  arquivo,
+                  ensure_ascii=False,
+                  indent=2
+              )
+          PY
+
+      - name: Verificar o arquivo JSON
+        run: |
+          python -m json.tool dados.json > /dev/null
+
+      - name: Publicar os novos dados
+        run: |
+          git config user.name "Automação SEGE"
+          git config user.email "actions@github.com"
+          git add dados.json
+
+          if git diff --cached --quiet; then
+            echo "Os dados não sofreram alterações."
+          else
+            git commit -m "Atualizar indicadores automaticamente"
+            git push
+          fi
