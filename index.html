@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Indicadores SEGE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background-color: #f4f6f8;
+            color: #263238;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1150px;
+            margin: 0 auto;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .titulo-area h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .titulo-area p {
+            margin: 6px 0 0;
+            color: #667085;
+        }
+
+        .filtro {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+        }
+
+        .filtro label {
+            font-weight: 700;
+        }
+
+        .filtro select {
+            padding: 8px 34px 8px 12px;
+            border: 1px solid #98a2b3;
+            border-radius: 7px;
+            background-color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            min-height: 145px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #a8d538, #8fc52e);
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 5px 14px rgba(37, 52, 24, 0.14);
+        }
+
+        .numero {
+            margin-bottom: 8px;
+            font-size: 48px;
+            line-height: 1;
+            font-weight: 800;
+            color: #17210f;
+        }
+
+        .rotulo {
+            font-size: 17px;
+            font-weight: 600;
+            color: #26351c;
+        }
+
+        .categoria-destaque {
+            margin-bottom: 22px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-left: 8px solid #98cc32;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+        }
+
+        .categoria-destaque p {
+            margin: 0 0 7px;
+            color: #667085;
+            font-size: 15px;
+        }
+
+        .categoria-destaque h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #34451f;
+        }
+
+        .conteudo-inferior {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr;
+            gap: 20px;
+        }
+
+        .painel {
+            padding: 22px;
+            background-color: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+        }
+
+        .painel h3 {
+            margin: 0 0 20px;
+            font-size: 20px;
+        }
+
+        .grafico-area {
+            min-height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grafico-rosca {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #21409a 0deg 240deg,
+                #98cc32 240deg 360deg
+            );
+            box-shadow: 0 3px 10px rgba(16, 24, 40, 0.14);
+        }
+
+        .grafico-rosca::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 118px;
+            height: 118px;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            border-radius: 50%;
+        }
+
+        .grafico-centro {
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .grafico-centro strong {
+            display: block;
+            font-size: 28px;
+        }
+
+        .grafico-centro span {
+            color: #667085;
+            font-size: 13px;
+        }
+
+        .legenda {
+            margin-top: 20px;
+        }
+
+        .item-legenda {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        .legenda-info {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .cor {
+            width: 14px;
+            height: 14px;
+            flex: 0 0 14px;
+            border-radius: 4px;
+        }
+
+        .cor-azul {
+            background-color: #21409a;
+        }
+
+        .cor-verde {
+            background-color: #98cc32;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 12px;
+            background-color: #98cc32;
+            color: #17210f;
+            text-align: left;
+        }
+
+        th:last-child,
+        td:last-child {
+            width: 120px;
+            text-align: center;
+        }
+
+        td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e4e7ec;
+        }
+
+        tbody tr:hover {
+            background-color: #f8faf5;
+        }
+
+        .rodape-painel {
+            margin-top: 18px;
+            color: #667085;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 14px;
+            }
+
+            .cabecalho {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .filtro {
+                justify-content: space-between;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .conteudo-inferior {
+                grid-template-columns: 1fr;
+            }
+
+            .numero {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="dashboard">
+
+        <header class="cabecalho">
+            <div class="titulo-area">
+                <h1>Indicadores SEGE</h1>
+                <p>Setor de Gestão do Ensino</p>
+            </div>
+
+            <div class="filtro">
+                <label for="ano">Ano:</label>
+
+                <select id="ano">
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                </select>
+            </div>
+        </header>
+
+        <section class="cards">
+
+            <article class="card">
+                <div id="atendimentos" class="numero">0</div>
+                <div class="rotulo">Atendimentos</div>
+            </article>
+
+            <article class="card">
+                <div id="visitas" class="numero">0</div>
+                <div class="rotulo">Visitas realizadas</div>
+            </article>
+
+            <article class="card">
+                <div id="naoConformidades" class="numero">0</div>
+                <div class="rotulo">Não conformidades</div>
+            </article>
+
+        </section>
+
+        <section class="categoria-destaque">
+            <p>Categoria de não conformidade mais recorrente</p>
+            <h2 id="categoriaRecorrente">Sem registros</h2>
+        </section>
+
+        <section class="conteudo-inferior">
+
+            <article class="painel">
+                <h3>Distribuição das ocorrências</h3>
+
+                <div class="grafico-area">
+                    <div id="graficoRosca" class="grafico-rosca">
+
+                        <div class="grafico-centro">
+                            <strong id="totalGrafico">0</strong>
+                            <span>ocorrências</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="legenda" class="legenda"></div>
+            </article>
+
+            <article class="painel">
+                <h3>Detalhamento</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Quantidade</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="corpoTabela"></tbody>
+                </table>
+
+                <div class="rodape-painel">
+                    Selecione outro ano para atualizar os dados.
+                </div>
+            </article>
+
+        </section>
+
+    </main>
+
+    <script>
+        const dados = {
+            "2025": {
+                atendimentos: 117,
+                visitas: 0,
+                naoConformidades: 3,
+                ocorrencias: [
+                    {
+                        categoria: "Cronograma incompatível",
+                        quantidade: 2
+                    },
+                    {
+                        categoria: "Início sem documentação",
+                        quantidade: 1
+                    }
+                ]
+            },
+
+            "2026": {
+                atendimentos: 217,
+                visitas: 12,
+                naoConformidades: 2,
+                ocorrencias: [
+                    {
+                        categoria: "Cronograma incompatível",
+                        quantidade: 1
+                    },
+                    {
+                        categoria: "Início sem documentação",
+                        quantidade: 1
+                    }
+                ]
+            }
+        };
+
+        const seletorAno = document.getElementById("ano");
+        const elementoAtendimentos = document.getElementById("atendimentos");
+        const elementoVisitas = document.getElementById("visitas");
+        const elementoNaoConformidades =
+            document.getElementById("naoConformidades");
+        const elementoCategoriaRecorrente =
+            document.getElementById("categoriaRecorrente");
+        const elementoTotalGrafico =
+            document.getElementById("totalGrafico");
+        const elementoGrafico =
+            document.getElementById("graficoRosca");
+        const elementoLegenda =
+            document.getElementById("legenda");
+        const elementoTabela =
+            document.getElementById("corpoTabela");
+
+        function encontrarCategoriaRecorrente(ocorrencias) {
+            if (!ocorrencias || ocorrencias.length === 0) {
+                return "Sem registros";
+            }
+
+            let maiorQuantidade = Math.max(
+                ...ocorrencias.map(function(item) {
+                    return item.quantidade;
+                })
+            );
+
+            let categoriasEmpatadas = ocorrencias
+                .filter(function(item) {
+                    return item.quantidade === maiorQuantidade;
+                })
+                .map(function(item) {
+                    return item.categoria;
+                });
+
+            if (categoriasEmpatadas.length > 1) {
+                return "Empate: " + categoriasEmpatadas.join(" e ");
+            }
+
+            return categoriasEmpatadas[0];
+        }
+
+        function atualizarDashboard() {
+            const anoSelecionado = seletorAno.value;
+            const dadosDoAno = dados[anoSelecionado];
+
+            if (!dadosDoAno) {
+                return;
+            }
+
+            elementoAtendimentos.textContent =
+                dadosDoAno.atendimentos;
+
+            elementoVisitas.textContent =
+                dadosDoAno.visitas;
+
+            elementoNaoConformidades.textContent =
+                dadosDoAno.naoConformidades;
+
+            elementoCategoriaRecorrente.textContent =
+                encontrarCategoriaRecorrente(
+                    dadosDoAno.ocorrencias
+                );
+
+            const totalOcorrencias =
+                dadosDoAno.ocorrencias.reduce(
+                    function(total, item) {
+                        return total + item.quantidade;
+                    },
+                    0
+                );
+
+            elementoTotalGrafico.textContent =
+                totalOcorrencias;
+
+            elementoTabela.innerHTML = "";
+            elementoLegenda.innerHTML = "";
+
+            const cores = [
+                "#21409a",
+                "#98cc32"
+            ];
+
+            let inicioAtual = 0;
+            let partesDoGrafico = [];
+
+            dadosDoAno.ocorrencias.forEach(
+                function(item, indice) {
+                    const porcentagem =
+                        totalOcorrencias > 0
+                            ? item.quantidade / totalOcorrencias
+                            : 0;
+
+                    const tamanhoEmGraus =
+                        porcentagem * 360;
+
+                    const fimAtual =
+                        inicioAtual + tamanhoEmGraus;
+
+                    const cor =
+                        cores[indice % cores.length];
+
+                    partesDoGrafico.push(
+                        cor +
+                        " " +
+                        inicioAtual +
+                        "deg " +
+                        fimAtual +
+                        "deg"
+                    );
+
+                    inicioAtual = fimAtual;
+
+                    const linha = document.createElement("tr");
+
+                    const celulaCategoria =
+                        document.createElement("td");
+
+                    const celulaQuantidade =
+                        document.createElement("td");
+
+                    celulaCategoria.textContent =
+                        item.categoria;
+
+                    celulaQuantidade.textContent =
+                        item.quantidade;
+
+                    linha.appendChild(celulaCategoria);
+                    linha.appendChild(celulaQuantidade);
+
+                    elementoTabela.appendChild(linha);
+
+                    const itemLegenda =
+                        document.createElement("div");
+
+                    itemLegenda.className =
+                        "item-legenda";
+
+                    const informacaoLegenda =
+                        document.createElement("div");
+
+                    informacaoLegenda.className =
+                        "legenda-info";
+
+                    const quadradoCor =
+                        document.createElement("span");
+
+                    quadradoCor.className = "cor";
+                    quadradoCor.style.backgroundColor = cor;
+
+                    const nomeCategoria =
+                        document.createElement("span");
+
+                    nomeCategoria.textContent =
+                        item.categoria;
+
+                    const quantidadeLegenda =
+                        document.createElement("strong");
+
+                    quantidadeLegenda.textContent =
+                        item.quantidade;
+
+                    informacaoLegenda.appendChild(
+                        quadradoCor
+                    );
+
+                    informacaoLegenda.appendChild(
+                        nomeCategoria
+                    );
+
+                    itemLegenda.appendChild(
+                        informacaoLegenda
+                    );
+
+                    itemLegenda.appendChild(
+                        quantidadeLegenda
+                    );
+
+                    elementoLegenda.appendChild(
+                        itemLegenda
+                    );
+                }
+            );
+
+            if (partesDoGrafico.length > 0) {
+                elementoGrafico.style.background =
+                    "conic-gradient(" +
+                    partesDoGrafico.join(", ") +
+                    ")";
+            } else {
+                elementoGrafico.style.background =
+                    "#e4e7ec";
+            }
+        }
+
+        seletorAno.addEventListener(
+            "change",
+            atualizarDashboard
+        );
+
+        atualizarDashboard();
+    </script>
+
+</body>
+</html>
