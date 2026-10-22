@@ -16,13 +16,13 @@
   },
   "2026": {
     "atendimentos": 217,
-    "naoConformidades": 2,
+    "naoConformidades": 3,
     "ocorrencias": [
       {
         "categoria": "Início de atividades sem documentação autorizativa",
-        "quantidade": 2
+        "quantidade": 3
       }
     ],
-    "visitas": 12
+    "visitas": 24
   }
 }
